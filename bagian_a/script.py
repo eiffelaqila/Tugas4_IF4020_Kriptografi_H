@@ -1,23 +1,24 @@
 import subprocess
+from .decrypt import RSA_Attack
 
 class Script(object):
   def __init__(self, ip, port, token):
     self.IP = ip
     self.PORT = port
     self.SECRET_TOKEN = token
+    self.rsa_attack = RSA_Attack()
 
   def extract_values(self, input_str):
-    paket_soal = input_str.split('paket_soal =')[1].split('\n')[0]
+    paket_soal = input_str.split('paket_soal = ')[1].split('\n')[0]
     n = int(input_str.split('n = ')[1].split('\n')[0])
     e = int(input_str.split('e = ')[1].split('\n')[0])
     c = int(input_str.split('c = ')[1].split('\n')[0])
-    p = input_str.split('p = ')[1].split('\n')[0]
 
-    return paket_soal, n, e, c, p
+    return paket_soal, n, e, c
 
   # TODO: Hapus "p"; Hanya untuk testing script
-  def calculate_answer(self, paket_soal, n, e, c, p):
-    return p
+  def calculate_answer(self, paket_soal, n, e, c):
+    return self.rsa_attack.decrypt(paket_soal, n, e, c)
 
   def is_stop_readline(self, lines):
     return 'n =' in lines and 'e =' in lines and 'c =' in lines and 'p =' in lines and 'Jawaban =' in lines
@@ -60,9 +61,9 @@ class Script(object):
         break
 
       # TODO: Hapus "p"; Hanya untuk testing script
-      paket_soal, n, e, c, p = self.extract_values(output)
+      paket_soal, n, e, c = self.extract_values(output)
 
-      answer = self.calculate_answer(paket_soal, n, e, c, p)
+      answer = self.calculate_answer(paket_soal, n, e, c)
       print(answer) # Opsional
 
       server_proc.stdin.write(answer + '\n')
