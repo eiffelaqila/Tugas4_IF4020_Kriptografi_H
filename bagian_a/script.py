@@ -21,7 +21,7 @@ class Script(object):
     return self.rsa_attack.decrypt(paket_soal, n, e, c)
 
   def is_stop_readline(self, lines):
-    return 'n =' in lines and 'e =' in lines and 'c =' in lines and 'p =' in lines and 'Jawaban =' in lines
+    return 'n =' in lines and 'e =' in lines and 'c =' in lines and 'Jawaban =' in lines
 
   def is_stop_loop(self, line):
     return ':((((((' in line or 'Error' in line or 'Uhuyyyy' in line or 'Tetap semangat dan jangan putus asa!' in line
@@ -52,7 +52,7 @@ class Script(object):
         print(line, end="") # Opsional
 
         if self.is_stop_loop(line):
-          result = line
+          result = line.split('\n')[0]
           end = True
           break
         output += line
@@ -77,4 +77,9 @@ class Script(object):
     server_proc.stdout.close()
     server_proc.stderr.close()
 
-    print(f"RESULT: {result}")
+    print('\n==========================================')
+    if 'Uhuyyyy' in result:
+      flag = result.split('Uhuyyyy ')[1].split('\n')[0]
+      print(f"Flag: {flag}")
+    else:
+      print(f"Terdapat kesalahan")

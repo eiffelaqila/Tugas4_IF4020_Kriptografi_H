@@ -63,9 +63,6 @@ try:
     print(f"e = {e}\n")
     print(f"c = {enc}\n")
 
-    # TODO: Hapus "p"; Hanya untuk testing script
-    print(f"p = {message_asli.decode()}\n")
-
     try:
       print("Jawaban = ")
       input_dec = input().strip("\n")
