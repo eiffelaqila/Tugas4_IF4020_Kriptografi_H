@@ -1,5 +1,5 @@
 import subprocess
-from .decrypt import RSA_Attack
+from bagian_a.decrypt import RSA_Attack
 
 class Script(object):
   def __init__(self, ip, port, token):
@@ -16,12 +16,11 @@ class Script(object):
 
     return paket_soal, n, e, c
 
-  # TODO: Hapus "p"; Hanya untuk testing script
   def calculate_answer(self, paket_soal, n, e, c):
     return self.rsa_attack.decrypt(paket_soal, n, e, c)
 
   def is_stop_readline(self, lines):
-    return 'n =' in lines and 'e =' in lines and 'c =' in lines and 'Jawaban =' in lines
+    return 'n =' in lines and 'e =' in lines and 'c =' in lines
 
   def is_stop_loop(self, line):
     return ':((((((' in line or 'Error' in line or 'Uhuyyyy' in line or 'Tetap semangat dan jangan putus asa!' in line
@@ -31,46 +30,49 @@ class Script(object):
     end = False
 
     server_proc = subprocess.Popen(
-      # ['nc', self.IP, self.PORT],
-      ['python', '-m', 'bagian_a.test'], 
+      ['ncat', self.IP, self.PORT],
+      # ['python', '-m', 'bagian_a.test'], 
       stdin=subprocess.PIPE, 
       stdout=subprocess.PIPE,
       stderr=subprocess.PIPE,
       universal_newlines=True)
 
     response = server_proc.stdout.readline()
-    print(response, end="") # Opsional
+    print(response, end="")
 
     print(self.SECRET_TOKEN)
-    server_proc.stdin.write(self.SECRET_TOKEN + '\n')
+    server_proc.stdin.write(self.SECRET_TOKEN) # server_proc.stdin.write(self.SECRET_TOKEN + '\n')
     server_proc.stdin.flush()
 
     while not end:
       output = ''
       while not self.is_stop_readline(output):
         line = server_proc.stdout.readline()
-        print(line, end="") # Opsional
+        if ('Jawaban = ' in line):
+          response = line.split('Jawaban = ')[1]
+          print(response, end="")
+          continue
+
+        print(line, end="")
 
         if self.is_stop_loop(line):
           result = line.split('\n')[0]
           end = True
           break
+
         output += line
 
       if end:
         break
 
-      # TODO: Hapus "p"; Hanya untuk testing script
       paket_soal, n, e, c = self.extract_values(output)
 
       answer = self.calculate_answer(paket_soal, n, e, c)
-      print(answer) # Opsional
+      print("Jawaban = ")
+      print(answer)
 
-      server_proc.stdin.write(answer + '\n')
+      server_proc.stdin.write(answer) # server_proc.stdin.write(answer + '\n')
       server_proc.stdin.flush()
-
-      response = server_proc.stdout.readline()
-      print(response, end="") # Opsional
 
     # Close the connection
     server_proc.stdin.close()

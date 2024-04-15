@@ -1,4 +1,4 @@
-from Crypto.Util.number import long_to_bytes, isPrime, inverse 
+from Crypto.Util.number import long_to_bytes, isPrime 
 from sympy import factorint
 
 from bagian_a.wiener import Wiener_Attack
@@ -23,7 +23,7 @@ class RSA_Attack(object):
         return None, None
 
     def iroot(self, k: int, num: int) -> int:
-        # Kth root of num
+        # Kth root of num by Newton's method
         u, s = num, num+1
         while u < s:
             s = u

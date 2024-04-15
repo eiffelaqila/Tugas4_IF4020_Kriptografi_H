@@ -64,8 +64,7 @@ try:
     print(f"c = {enc}\n")
 
     try:
-      print("Jawaban = ")
-      input_dec = input().strip("\n")
+      input_dec = input("Jawaban = ").strip("\n")
       if input_dec == message_asli.decode():
         print("Uwaw keren!!!\n")
         counter += 1

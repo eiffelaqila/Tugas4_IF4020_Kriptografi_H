@@ -1,4 +1,4 @@
-from .script import Script
+from bagian_a.script import Script
 
 def main():
   # Secret
