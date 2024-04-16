@@ -11,15 +11,15 @@ class RSA_Attack(object):
         # Factorize the modulus n
         factors = factorint(n)
         prime_factors = [p for p in factors if isPrime(p)]
-        if (len(prime_factors) == 1 and n == pow(prime_factors[0], 2)):
+        if (len(prime_factors) == 2 and n == (prime_factors[0] * prime_factors[1])):
+            # Meaning: n = p*q (p and q are prime)
+            return prime_factors[0], prime_factors[1]
+        elif (len(prime_factors) == 1 and n == pow(prime_factors[0], 2)):
             # Meaning: n = p^2 (p is prime)
             return prime_factors[0], prime_factors[0]
         elif (len(prime_factors) == 1 and n == (prime_factors[0] * 1)):
-            # Meaning: n = 1*p (p is prime)
+            # Meaning: n = p (p is prime)
             return 1, prime_factors[0]
-        elif (len(prime_factors) == 2 and n == (prime_factors[0] * prime_factors[1])):
-            # Meaning: n = p*q (p and q are prime)
-            return prime_factors[0], prime_factors[1]
         return None, None
 
     def iroot(self, k: int, num: int) -> int:
@@ -30,60 +30,85 @@ class RSA_Attack(object):
             t = (k-1) * s + num // pow(s, k-1)
             u = t // k
         return s
-    
+
     def wiener_attack(self, n: int, e: int) -> int:
         # Wiener attack to get d (when d is small)
         wa = Wiener_Attack(n, e)
         return wa.solve()
 
+    def decrypt_a(self, n: int, e: int, c: int) -> str:
+        # Kelemahan A:  Menggunakan modulus n yang dihasilkan dari
+        #               perkalian dua buah prima yang berdekatan.
+        # Serangan:     Factorization attack.
+        p, q = self.factorize(n)
+        if (p == None):
+            raise ValueError('N bukan merupakan perkalian 2 bilangan prima')
+
+        totient = (p-1) * (q-1)
+        d = pow(e, -1, totient)
+
+        m = pow(c, d, n)
+        m = long_to_bytes(m)
+        return m.decode('utf-8')
+
+    def decrypt_b(self, n: int, e: int, c: int) -> str:
+        # Kelemahan B:  Menggunakan modulus n yang dihasilkan dari
+        #               perkalian dua prima yang sama (kuadratik).
+        # Serangan:     Melakukan pengakaran kuadrat terhadap n
+        #               untuk memperoleh p atau q.
+        p = self.iroot(2, n)
+        if (p**2 != n):
+            raise ValueError('N bukan merupakan perkalian 2 bilangan prima yang sama (kuadratik)')
+
+        totient = (p-1) * p
+        d = pow(e, -1, totient)
+
+        m = pow(c, d, n)
+        m = long_to_bytes(m)
+        return m.decode('utf-8')
+
+    def decrypt_c(self, n: int, e: int, c: int) -> str:
+        # Kelemahan C:  Menggunakan d yang nilainya kecil.
+        # Serangan:     Weiner Attack.
+        d = self.wiener_attack(n, e)
+
+        m = pow(c, d, n)
+        m = long_to_bytes(m)
+        return m.decode('utf-8')
+
+    def decrypt_d(self, n: int, e: int, c: int) -> str:
+        # Kelemahan D:  Menggunakan e yang nilainya kecil (e = 3).
+        # Serangan:     m = Akar pangkat e dari c.
+        m = self.iroot(e, c)
+        m = long_to_bytes(m)
+        return m.decode('utf-8')
+
+    def decrypt_e(self, n: int, e: int, c: int) -> str:
+        # Kelemahan E:  Menggunakan modulus n yang dihasilkan dari
+        #               satu buah prima.
+        # Serangan:     p = n.
+        p = n
+        totient = (p-1)
+        d = pow(e, -1, totient)
+
+        m = pow(c, d, n)
+        m = long_to_bytes(m)
+        return m.decode('utf-8')
+
     def decrypt(self, version: str, n: int, e: int, c: int) -> str:
         try:
-            p = None
             if version == 'A':
-                # Notes:
-                # Kelemahan A:  Menggunakan modulus n yang dihasilkan dari
-                #               perkalian dua buah prima yang berdekatan.
-                # Serangan:     Factorization attack.
-                p, q = self.factorize(n)
-                if (p == None):
-                    raise ValueError('N bukan merupakan perkalian 2 bilangan prima')
-
-                totient = (p-1) * (q-1)
-                d = pow(e, -1, totient)
+                return self.decrypt_a(n, e, c)
             elif version == 'B':
-                # Notes:
-                # Kelemahan B:  Menggunakan modulus n yang dihasilkan dari
-                #               perkalian dua prima yang sama (kuadratik).
-                p = self.iroot(2, n)
-                if (p**2 != n):
-                    raise ValueError('N bukan merupakan perkalian 2 bilangan prima yang sama (kuadratik)')
-
-                totient = (p-1) * p
-                d = pow(e, -1, totient)
+                return self.decrypt_b(n, e, c)
             elif version == 'C':
-                # Notes:
-                # Kelemahan C:  Menggunakan d yang nilainya kecil
-                # Serangan:     Wiener Attack
-                d = self.wiener_attack(n, e)
+                return self.decrypt_c(n, e, c)
             elif version == 'D':
-                # Notes:
-                # Kelemahan D:  Menggunakan e yang nilainya kecil (e = 3)
-                # Serangan:     m = Akar pangkat e dari c
-                s = self.iroot(e, c)
-                p = long_to_bytes(s)
-                return p.decode('utf-8')
+                return self.decrypt_d(n, e, c)
             elif version == 'E':
-                # Notes:
-                # Kelemahan E:  Menggunakan modulus n yang dihasilkan dari
-                #               satu buah prima.
-                totient = (n-1)
-                d = pow(e, -1, totient)
+                return self.decrypt_e(n, e, c)
             else:
                 raise ValueError('Versi paket soal tidak tersedia')
-
-            p = pow(c, d, n)
-            p = long_to_bytes(p)
-            return p.decode('utf-8')
         except Exception as e:
             print('Error: %s' % e)
             return None
