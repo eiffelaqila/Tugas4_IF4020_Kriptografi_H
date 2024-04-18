@@ -33,8 +33,8 @@ class RSA_Attack(object):
 
     def wiener_attack(self, n: int, e: int) -> int:
         # Wiener attack to get d (when d is small)
-        wa = Wiener_Attack(n, e)
-        return wa.solve()
+        wa = Wiener_Attack()
+        return wa.solve(n, e)
 
     def decrypt_a(self, n: int, e: int, c: int) -> str:
         # Kelemahan A:  Menggunakan modulus n yang dihasilkan dari

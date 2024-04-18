@@ -1,10 +1,8 @@
 import sys
 
 class Wiener_Attack(object):
-  def __init__(self, N: int, e: int) -> None:
+  def __init__(self) -> None:
     sys.setrecursionlimit(100000)
-    self.n = N
-    self.e = e
 
   def rational_to_contfrac(self, x: int, y: int) -> list[int]:
     a = x//y
@@ -56,15 +54,15 @@ class Wiener_Attack(object):
         return x
       x = y
 
-  def solve(self):
-    frac = self.rational_to_contfrac(self.e, self.n)
+  def solve(self, N: int, e: int):
+    frac = self.rational_to_contfrac(e, N)
     self.convergents = self.convergents_from_contfrac(frac)
 
     for (k,d) in self.convergents:
-      if k!=0 and (self.e*d-1)%k == 0:
-        phi = (self.e*d-1)//k
-        s = self.n - phi + 1
-        discr = s*s - 4*self.n
+      if k!=0 and (e*d-1)%k == 0:
+        phi = (e*d-1)//k
+        s = N - phi + 1
+        discr = s*s - 4*N
         if(discr>=0):
           t = self.is_perfect_square(discr)
           if t!=-1 and (s+t)%2==0:

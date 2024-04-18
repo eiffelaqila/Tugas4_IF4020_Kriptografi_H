@@ -29,6 +29,10 @@ class Script(object):
     result = ''
     end = False
 
+    # Comment code below, when using test.py
+    if self.IP == '' or self.PORT == '' or self.SECRET_TOKEN == '':
+      raise ValueError('IP, PORT, and SECRET_TOKEN must be specified')
+
     server_proc = subprocess.Popen(
       ['ncat', self.IP, self.PORT],
       # ['python', '-m', 'bagian_a.test'], 
@@ -41,7 +45,9 @@ class Script(object):
     print(response, end="")
 
     print(self.SECRET_TOKEN)
-    server_proc.stdin.write(self.SECRET_TOKEN) # server_proc.stdin.write(self.SECRET_TOKEN + '\n')
+    # Use the second code, when using test.py
+    server_proc.stdin.write(self.SECRET_TOKEN)
+    # server_proc.stdin.write(self.SECRET_TOKEN + '\n')
     server_proc.stdin.flush()
 
     while not end:
@@ -71,7 +77,9 @@ class Script(object):
       print("Jawaban = ")
       print(answer)
 
-      server_proc.stdin.write(answer) # server_proc.stdin.write(answer + '\n')
+      # Use the second code, when using test.py
+      server_proc.stdin.write(answer)
+      # server_proc.stdin.write(answer + '\n')
       server_proc.stdin.flush()
 
     # Close the connection
@@ -81,7 +89,7 @@ class Script(object):
 
     print('\n==========================================')
     if 'Uhuyyyy' in result:
-      flag = result.split('Uhuyyyy ')[1].split('\n')[0]
+      flag = result.split('\n')[0]
       print(f"Flag: {flag}")
     else:
       print(f"Terdapat kesalahan")
